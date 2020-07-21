@@ -21,9 +21,11 @@ public:
     bool empty();
 
 private:
+    void heapify(int iPos);
+    int positionOfParent(int iChildPos);
     int positionOfGreaterChild(int iParentPos);
 
-    std::vector<int> elements;    
+    std::vector<int> values_;    
 };
 
 } // namespace heap

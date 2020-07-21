@@ -8,64 +8,77 @@ namespace heap {
 Heap::Heap() = default;
 
 Heap::Heap(const std::vector<int>& iValues) :
-    elements(iValues)
+    values_(iValues)
 {
-    // I know this is not optimal
-    std::sort(elements.begin(), elements.end(), std::greater<int>());
+    int rootPos = values_.size() / 2;
+    while (rootPos > -1)
+        heapify(rootPos--);
 }
 
 Heap::Heap(const Heap& iOther) :
-    elements(iOther.elements)
+    values_(iOther.values_)
 {}
 
 Heap& Heap::operator=(const Heap& iOther)
 {
     if (this != &iOther)
-        elements = iOther.elements; 
+        values_ = iOther.values_;
     return *this;
 }
 
 int Heap::peek()
 {
-    if (!elements.empty())
-        return elements.front();
+    if (!values_.empty())
+        return values_.front();
     throw std::runtime_error("Invoked peek() on empty Heap.");
 }
 
 void Heap::push(int iValue)
 {
-    elements.push_back(iValue);
-    int aPos = elements.size() - 1; 
-    int aParentPos = aPos/2 - (1 * aPos % 2);
+    values_.push_back(iValue);
+    int aPos = values_.size() - 1;
+    int aParentPos = positionOfParent(aPos);
 
-    while (aParentPos > -1 && elements[aPos] > elements[aParentPos])
+    while (aParentPos > -1 && values_[aPos] > values_[aParentPos])
     {
-        std::swap(elements[aPos], elements[aParentPos]);
+        std::swap(values_[aPos], values_[aParentPos]);
         aPos = aParentPos;
-        aParentPos = aPos/2;
-        if (aPos % 2 == 0)
-            aParentPos--;
+        aParentPos = positionOfParent(aPos);
     }
 }
 
 int Heap::pop()
 {
-    if (elements.empty())
+    if (values_.empty())
         throw std::runtime_error("Invoked pop() on emtpy Heap.");
-    int aValue = elements.front();
-    std::swap(elements.front(), elements.back());
-    elements.pop_back(); 
+    int aValue = values_.front();
 
-    const int aSize = elements.size();
-    int aPos = 0;
-    int aChildPos = positionOfGreaterChild(aPos);
-    while (aChildPos != -1 && elements[aPos] < elements[aChildPos])
-    {
-        std::swap(elements[aPos], elements[aChildPos]); 
-        aPos = aChildPos;
-        aChildPos = positionOfGreaterChild(aPos);
-    }
+    std::swap(values_.front(), values_.back());
+    values_.pop_back();
+    heapify(0);
+
     return aValue;
+}
+
+void Heap::heapify(int iPos)
+{
+    if (iPos >= values_.size())
+        return;
+    int parentPos = iPos;
+    int childPos  = positionOfGreaterChild(parentPos);
+    while (childPos != -1 && values_[parentPos] < values_[childPos])
+    {
+        std::swap(values_[parentPos], values_[childPos]);
+        parentPos = childPos;
+        childPos  = positionOfGreaterChild(parentPos);
+    }
+}
+
+int Heap::positionOfParent(const int iChildPos)
+{
+    if (iChildPos % 2 == 0)
+        return iChildPos / 2 - 1;
+    return iChildPos / 2;
 }
 
 int Heap::positionOfGreaterChild(const int iParentPos)
@@ -73,23 +86,23 @@ int Heap::positionOfGreaterChild(const int iParentPos)
     const int aChildPosL = iParentPos * 2 + 1;
     const int aChildPosR = aChildPosL + 1;
 
-    if (aChildPosL >= elements.size())
+    if (aChildPosL >= values_.size())
         return -1;
-    if (aChildPosR >= elements.size())
+    if (aChildPosR >= values_.size())
         return aChildPosL;
-    if (elements[aChildPosL] < elements[aChildPosR])
+    if (values_[aChildPosL] < values_[aChildPosR])
         return aChildPosR;
     return aChildPosL;
 }
 
 int Heap::size()
 {
-    return elements.size();
+    return values_.size();
 }
 
 bool Heap::empty()
 {
-    return elements.empty();
+    return values_.empty();
 }
 
 } // namespace heap
